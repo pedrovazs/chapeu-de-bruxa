@@ -1,11 +1,14 @@
 server:
   port: 2333
+  adress: "0.0.0.0"
 lavalink:
   server:
     password: "youshallnotpass"
     sources:
       youtube: true
-      spotify: true
+      soundcloud: true
     bufferDurationMs: 400
     youtubeConfig:
       playlistLoadLimit: 6
+    ws:
+      endpoint: "/v4/websocket"

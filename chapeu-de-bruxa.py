@@ -36,7 +36,7 @@ async def connect_lavalink(bot):
             host="localhost",
             port=2333,
             password="youshallnotpass",
-            region="us"
+            ws_endpoint="/v4/websocket"
         )
         print("✅ Conectado ao Lavalink!")
     except Exception as e:
@@ -54,25 +54,45 @@ class MusicCog(commands.Cog):
 
         vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)
         if vc:
-            await ctx.send(f"🎵 Entrei no canal: {ctx.author.voice.channel.mention}")
+            await ctx.send(f"🎵 Hey! Estou entrarndo no canal: {ctx.author.voice.channel.mention}")
         else:
             await ctx.send("❌ Não consegui entrar no canal de voz.")
 
     @commands.command()
     async def tocar(self, ctx, *, busca: str):
         """Toca uma música usando Wavelink v4"""
+
+        # Obtém o player de áudio do servidor
         vc: wavelink.Player = ctx.voice_client
 
+        # Se o bot não estiver em um canal de voz, conecta ao canal do autor
         if not vc:
-            return await ctx.send("❌ Eu não estou em um canal de voz. Use `!entrar` primeiro.")
+            if not ctx.author.voice:
+                return await ctx.send("❌ Você precisa estar em um canal de voz para tocar música!")
+            
+            vc = await ctx.author.voice.channel.connect(cls=wavelink.Player)
 
-        results = await wavelink.YouTubeTrack.search(query=busca)
+        # Obtém um nó ativo do Lavalink
+        node = wavelink.NodePool.get_node()
+        if not node:
+            return await ctx.send("❌ Nenhum nó Lavalink disponível!")
+
+        # Busca a música no YouTube
+        try:
+            results = await wavelink.YouTubeTrack.search(busca, node=wavelink.NodePool.get_node())
+        except Exception as e:
+            return await ctx.send(f"❌ Erro ao buscar música: {e}")
 
         if not results:
             return await ctx.send("❌ Nenhuma música encontrada!")
 
-        track = results[0]
-        await vc.play(track)
+        track = results[0]  # Pega a primeira música encontrada
+
+        try:
+            await vc.play(track)  # Reproduz a música
+        except Exception as e:
+            return await ctx.send(f"❌ Erro ao tocar música: {e}")
+
         await ctx.send(f"🎶 Tocando agora: **{track.title}**")
 
     @commands.command()
@@ -84,7 +104,7 @@ class MusicCog(commands.Cog):
             return await ctx.send("❌ Eu não estou em um canal de voz.")
 
         await vc.disconnect()
-        await ctx.send("👋 Saí do canal de voz.")
+        await ctx.send("👋 Tchau Tchau, estou saindo do canal de voz.")
 
 class GeneralCog(commands.Cog):
     def __init__(self, bot):
