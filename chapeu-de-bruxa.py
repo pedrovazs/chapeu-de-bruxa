@@ -11,39 +11,39 @@ intents.messages = True
 intents.guilds = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix=commands.when_mentioned_or("!"), intents=intents)
+chapeuBruxa = commands.Bot(command_prefix=commands.when_mentioned_or("!"), intents=intents)
 
-@bot.event
+@chapeuBruxa.event
 async def on_ready():
-    print(f"{bot.user.name} está no ar!")
-    for guild in bot.guilds:
+    print(f"{chapeuBruxa.user.name} está no ar!")
+    for guild in chapeuBruxa.guilds:
         print(f"Conectado ao servidor: {guild.name} (ID: {guild.id})")
 
-@bot.event
+@chapeuBruxa.event
 async def on_message(message):
-    if message.author == bot.user:
+    if message.author == chapeuBruxa.user:
         return
 
     if isinstance(message.channel, discord.DMChannel):
         await message.channel.send("Olá! Só posso responder em servidores.")
         return
 
-    await bot.process_commands(message)
+    await chapeuBruxa.process_commands(message)
 
-@bot.command()
+@chapeuBruxa.command()
 async def oi(ctx):
     await ctx.send(f"Olá, {ctx.author.mention}! Como vai?")
 
-@bot.command()
+@chapeuBruxa.command()
 async def ping(ctx):
-    latency = round(bot.latency * 1000)
+    latency = round(chapeuBruxa.latency * 1000)
     await ctx.send(f"Pong! 🏓 Latência: {latency}ms")
 
-@bot.command()
+@chapeuBruxa.command()
 async def repetir(ctx, *, mensagem):
     await ctx.send(mensagem)
 
-@bot.command()
+@chapeuBruxa.command()
 async def pesquisar(ctx, *, consulta):
     await ctx.send(f"🔎 **Buscando por:** {consulta}...")
 
@@ -73,4 +73,4 @@ async def pesquisar(ctx, *, consulta):
         await ctx.send("❌ **Erro ao buscar informações.**")
         print(f"erro na resposta: {e}")
 
-bot.run(TOKEN_DISCORD)
+chapeuBruxa.run(TOKEN_DISCORD)
