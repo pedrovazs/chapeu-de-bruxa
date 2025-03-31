@@ -1,0 +1,11 @@
+server:
+  port: 2333
+lavalink:
+  server:
+    password: "youshallnotpass"
+    sources:
+      youtube: true
+      spotify: true
+    bufferDurationMs: 400
+    youtubeConfig:
+      playlistLoadLimit: 6
