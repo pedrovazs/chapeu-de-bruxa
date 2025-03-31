@@ -1,16 +1,10 @@
 import discord
 import random
-from const import TOKEN
+from const import TOKEN, GIFS
 from discord.ext import commands
 from duckduckgo_search import DDGS
 
 TOKEN_DISCORD = TOKEN
-
-GIFS = [
-    "https://media.giphy.com/media/3o7abldj0b3rxrZUxW/giphy.gif",
-    "https://media.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif",
-    "https://media.giphy.com/media/3o7TKU8RvQuomFfUUU/giphy.gif"
-]
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -67,11 +61,9 @@ async def pesquisar(ctx, *, consulta):
             color=discord.Color.purple()
         )
 
-        r# Adicionando os resultados ao embed
         for result in resultados:
             embed.add_field(name=result["title"], value=f"[Acesse aqui]({result['href']})", inline=False)
 
-        # Adiciona um GIF aleatório para deixar mais divertido
         embed.set_image(url=random.choice(GIFS))
         embed.set_footer(text="🧙‍♂️ Pesquisa feita por Chapéu de Bruxa!")
 
@@ -79,5 +71,6 @@ async def pesquisar(ctx, *, consulta):
 
     except Exception as e:
         await ctx.send("❌ **Erro ao buscar informações.**")
+        print(f"erro na resposta: {e}")
 
 bot.run(TOKEN_DISCORD)
