@@ -2,6 +2,7 @@ import discord
 import random
 import wavelink
 import json
+import asyncio
 from discord.ext import commands
 from duckduckgo_search import DDGS
 from const import TOKEN, GIFS
@@ -13,6 +14,7 @@ intents.messages = True
 intents.guilds = True
 intents.message_content = True
 intents.voice_states = True
+intents.members = True
 
 class ChapéuDeBruxa(commands.Bot):
     def __init__(self):
@@ -22,6 +24,7 @@ class ChapéuDeBruxa(commands.Bot):
         """Carregar as Cogs e conectar ao Lavalink"""
         await self.add_cog(MusicCog(self))
         await self.add_cog(GeneralCog(self))
+        await self.add_cog(SpellCog(self))
         await connect_lavalink(self)
 
     async def on_ready(self):
@@ -194,11 +197,53 @@ class GeneralCog(commands.Cog):
                 curiosidades = json.load(f)
             
             curiosidade = random.choice(curiosidades)
-            await ctx.send(f"😃 Curiosidade do dia! \n {curiosidade}")
+            await ctx.send(f"👩‍🎓 Curiosidade do dia! \n {curiosidade}")
         
         except Exception as e:
             await ctx.send(f"❌ Erro ao buscar uma curiosidade!")
             print(f"Erro: {e}")
+
+class SpellCog(commands.Cog):
+    """Classe que gerencia os feitiços do Chapéu de Bruxa"""
+    def __init__(self, bot):
+        self.bot = bot
+        self.silenced_users = {}  # Armazena usuários silenciados
+        self.spell_uses = {}  # Contador de usos do feitiço
+
+    @commands.command()
+    async def silencio(self, ctx, membro: discord.Member = None):
+        """Lança o feitiço do silêncio em um usuário, impedindo-o de enviar mensagens por 1 minuto"""
+        if not membro:
+            return await ctx.send("❌ Mas em quem você vai lançar o feitiço!?")
+
+        if membro == ctx.author:
+            return await ctx.send("❌ Está maluco! Quem em sã consciência lançaria um feitiço de silêncio em si mesmo?")
+
+        if membro == self.bot.user:
+            return await ctx.send("❌ Hahahaha! Tente novamente quando estiver no nível 999")
+
+        autor_id = ctx.author.id
+        membro_id = membro.id
+
+        # Define o limite diário de usos do feitiço
+        limite_diario = 3  
+
+        # Verifica se o autor já usou o feitiço hoje
+        if autor_id in self.spell_uses and self.spell_uses[autor_id] >= limite_diario:
+            return await ctx.send(f"❌ Você já usou seu limite diário de {limite_diario} feitiços!")
+
+        # Adiciona o alvo à lista de silenciados
+        self.silenced_users[membro_id] = True
+
+        # Atualiza o contador de usos
+        self.spell_uses[autor_id] = self.spell_uses.get(autor_id, 0) + 1
+
+        await ctx.send(f"🔮 {membro.mention} foi silenciado por **1 minuto**! Shhh... 🤫")
+
+        # Aguarda 60 segundos e remove o efeito do feitiço
+        await asyncio.sleep(60)
+        self.silenced_users.pop(membro_id, None)
+        await ctx.send(f"🔊 {membro.mention} o feitiço foi desfeito! Agora você pode falar")
 
 bot = ChapéuDeBruxa()
 
