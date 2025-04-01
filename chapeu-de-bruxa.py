@@ -1,6 +1,7 @@
 import discord
 import random
 import wavelink
+import json
 from discord.ext import commands
 from duckduckgo_search import DDGS
 from const import TOKEN, GIFS
@@ -36,7 +37,6 @@ async def connect_lavalink(bot):
             host="localhost",
             port=2333,
             password="youshallnotpass",
-            ws_endpoint="/v4/websocket"
         )
         print("✅ Conectado ao Lavalink!")
     except Exception as e:
@@ -156,6 +156,49 @@ class GeneralCog(commands.Cog):
         except Exception as e:
             await ctx.send("❌ **Erro ao buscar informações.**")
             print(f"Erro na resposta: {e}")
+        
+    @commands.command()
+    async def zoar(self, ctx, membro: discord.Member = None):
+        """Manda um insulto engraçado para um usuário"""
+        if not membro:
+            return await ctx.send("❌ Preciso que mencione alguém para poder zoar..")
+
+        try:
+            with open("json/insultos.json", "r", encoding="utf-8") as f:
+                insultos = json.load(f)
+
+            insulto = random.choice(insultos)
+            await ctx.send(f"😆 {membro.mention}, {insulto}")
+
+        except Exception as e:
+            await ctx.send("❌ Erro ao buscar insultos!")
+            print(f"Erro: {e}")
+    
+    @commands.command()
+    async def piada(self, ctx):
+        try:
+            with open("json/piadas.json", "r", encoding="utf-8") as f:
+                piadas = json.load(f)
+
+            piada = random.choice(piadas)
+            await ctx.send(f"😆 {piada}")
+
+        except Exception as e:
+            await ctx.send("❌ Erro ao buscar uma piada!")
+            print(f"Erro: {e}")
+    
+    @commands.command()
+    async def curiosidades(self, ctx):
+        try:
+            with open("json/curiosidades.json", "r", encoding="utf-8") as f:
+                curiosidades = json.load(f)
+            
+            curiosidade = random.choice(curiosidades)
+            await ctx.send(f"😃 Curiosidade do dia! \n {curiosidade}")
+        
+        except Exception as e:
+            await ctx.send(f"❌ Erro ao buscar uma curiosidade!")
+            print(f"Erro: {e}")
 
 bot = ChapéuDeBruxa()
 
