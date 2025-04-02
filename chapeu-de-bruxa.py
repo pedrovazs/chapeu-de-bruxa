@@ -115,7 +115,12 @@ class GeneralCog(commands.Cog):
 
     @commands.command()
     async def comandos(self, ctx):
-        await ctx.send(f"Olá! Eu sou a **{ctx.bot.user.name}**, uma chatbot básica que pode fazer buscas na internet e responder algumas mensagens.")
+        embed = discord.Embed(
+            title="🧙‍♀️🔮✨ Comandos disponíveis!",
+            description=f"Lista do que eu posso fazer: \n1) !oi \n2) !ping \n3) !repetir \n4) !pesquisar \n5) !zoar \n6) !piada \n7) !curiosidade \n\nE também posso lançar alguns feitiços! 🪄✨",
+            color=discord.Color.dark_grey()
+            )
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def oi(self, ctx):
@@ -197,10 +202,14 @@ class GeneralCog(commands.Cog):
                 curiosidades = json.load(f)
             
             curiosidade = random.choice(curiosidades)
-            await ctx.send(f"👩‍🎓 Curiosidade do dia! \n {curiosidade}")
-        
+            embed = discord.Embed(
+            title="👩‍🎓 Curiosidade do dia!",
+            description=f"{curiosidade}",
+            color=discord.Color.blurple()
+            )
+            await ctx.send(embed=embed)
         except Exception as e:
-            await ctx.send(f"❌ Erro ao buscar uma curiosidade!")
+            await ctx.send(f"❌ Erro ao buscar uma curiosidade! Oh não!!")
             print(f"Erro: {e}")
 
 class SpellCog(commands.Cog):
@@ -208,13 +217,25 @@ class SpellCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.silenced_users = {}  # Armazena usuários silenciados
+        self.confused_users = {}  # Armazena usuários afetados pelo feitiço da confusão
         self.spell_uses = {}  # Contador de usos do feitiço
+        self.silence_gifs = [  # Lista de GIFs engraçados para o feitiço de silêncio
+            "https://media.giphy.com/media/U4DswrBJJG3aM/giphy.gif",
+            "https://media.giphy.com/media/l2JehQ2GitHGdVG9y/giphy.gif",
+            "https://media.giphy.com/media/3xz2BLBOt13X9AgjEA/giphy.gif",
+            "https://media.giphy.com/media/5VKbvrjxpVJCM/giphy.gif",
+        ]
+        self.confusion_gifs = [
+            "https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif",
+            "https://media.giphy.com/media/5xtDarv1LJFOzL56m8c/giphy.gif",
+            "https://media.giphy.com/media/l378khQxt68syiWJy/giphy.gif",
+        ]
 
     @commands.command()
     async def silencio(self, ctx, membro: discord.Member = None):
         """Lança o feitiço do silêncio em um usuário, impedindo-o de enviar mensagens por 1 minuto"""
         if not membro:
-            return await ctx.send("❌ Mas em quem você vai lançar o feitiço!?")
+            return await ctx.send("❌ Alô? Em quem você quer jogar o feitiço, hein?")
 
         if membro == ctx.author:
             return await ctx.send("❌ Está maluco! Quem em sã consciência lançaria um feitiço de silêncio em si mesmo?")
@@ -238,12 +259,73 @@ class SpellCog(commands.Cog):
         # Atualiza o contador de usos
         self.spell_uses[autor_id] = self.spell_uses.get(autor_id, 0) + 1
 
-        await ctx.send(f"🔮 {membro.mention} foi silenciado por **1 minuto**! Shhh... 🤫")
+        # Escolhe um GIF aleatório
+        gif_escolhido = random.choice(self.silence_gifs)
+
+        embed = discord.Embed(
+            title="🤫 Feitiço do Silêncio!",
+            description=f"{membro.mention} foi silenciado por **1 minuto**! Fique quietinho ta? 😉",
+            color=discord.Color.dark_purple()
+        )
+        embed.set_image(url=gif_escolhido)
+
+        await ctx.send(embed=embed)
 
         # Aguarda 60 segundos e remove o efeito do feitiço
         await asyncio.sleep(60)
         self.silenced_users.pop(membro_id, None)
-        await ctx.send(f"🔊 {membro.mention} o feitiço foi desfeito! Agora você pode falar")
+
+        embed = discord.Embed(
+            title="🔊 O feitiço foi quebrado!",
+            description=f"{membro.mention} agora pode falar novamente!",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def confusao(self, ctx, membro: discord.Member = None):
+        """Lança o Feitiço da Confusão em um usuário, embaralhando suas mensagens por 1 minuto"""
+        if not membro:
+            return await ctx.send("❌ Você precisa mencionar alguém para lançar o feitiço!")
+
+        if membro == ctx.author:
+            return await ctx.send("❌ Você não pode lançar o feitiço em si mesmo!")
+
+        if membro == self.bot.user:
+            return await ctx.send("❌ Eu sou imune aos feitiços!")
+
+        autor_id = ctx.author.id
+        membro_id = membro.id
+        limite_diario = 3  
+
+        # Verifica se o autor já usou o feitiço hoje
+        if self.spell_uses.get(autor_id, 0) >= limite_diario:
+            return await ctx.send(f"❌ Você já usou seu limite diário de {limite_diario} feitiços!")
+
+        # Adiciona o alvo à lista de confusão
+        self.confused_users[membro_id] = True
+        self.spell_uses[autor_id] = self.spell_uses.get(autor_id, 0) + 1
+
+        gif_escolhido = random.choice(self.confusion_gifs)
+        embed = discord.Embed(
+            title="😵‍💫 Feitiço da Confusão!",
+            description=f"{membro.mention} está completamente confuso! Todas as suas mensagens serão embaralhadas por **2 minutos**!",
+            color=discord.Color.orange()
+        )
+        embed.set_image(url=gif_escolhido)
+
+        await ctx.send(embed=embed)
+
+        # Aguarda 60 segundos e remove o efeito do feitiço
+        await asyncio.sleep(120)
+        self.confused_users.pop(membro_id, None)
+
+        embed = discord.Embed(
+            title="😵‍💫 A confusão passou!",
+            description=f"{membro.mention} agora pode pensar direito novamente!",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)
 
 bot = ChapéuDeBruxa()
 
@@ -255,6 +337,24 @@ async def on_message(message):
     if isinstance(message.channel, discord.DMChannel):
         await message.channel.send("Olá! Só posso responder em servidores.")
         return
+    if message.author.id in bot.get_cog("SpellCog").silenced_users:
+            try:
+                await message.delete()
+            except discord.Forbidden:
+                print(f"❌ Não tenho permissão para deletar mensagens em {message.channel}")
+            except discord.NotFound:
+                pass  # Mensagem já foi deletada
+    if message.author.id in bot.get_cog("SpellCog").confused_users:
+            if message.content:
+                palavras = message.content.split()
+                random.shuffle(palavras)
+                mensagem_embaralhada = " ".join(palavras)
+                
+                try:
+                    await message.delete()
+                    await message.channel.send(f"🤪 **{message.author.display_name}:** {mensagem_embaralhada}")
+                except discord.Forbidden:
+                    print(f"❌ Não tenho permissão para deletar mensagens em {message.channel}")
 
     await bot.process_commands(message)
 
