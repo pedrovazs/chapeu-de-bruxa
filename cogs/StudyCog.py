@@ -2,8 +2,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Context, Bot
 import sqlite3
-import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 DB_PATH = "study_data.db"
 
@@ -22,7 +21,7 @@ def init_db():
         ''')
         conn.commit()
 
-class StudyCog(commands.Cog):
+class StudyGamificationCog(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         init_db()
@@ -31,7 +30,8 @@ class StudyCog(commands.Cog):
     async def estudei(self, ctx: Context, minutos: int):
         """Registra tempo de estudo e calcula XP"""
         user_id = ctx.author.id
-        xp_ganho = minutos * 2  # Exemplo: 2 XP por minuto
+        xp_ganho = minutos * 1.5  # Exemplo: 2 XP por minuto
+        agora_utc = datetime.now(timezone.utc).isoformat()
 
         with sqlite3.connect(DB_PATH) as conn:
             cursor = conn.cursor()
@@ -46,12 +46,12 @@ class StudyCog(commands.Cog):
                     UPDATE study_data 
                     SET total_minutes=?, xp=?, level=?, last_study=?
                     WHERE user_id=?
-                ''', (total_minutos, total_xp, level, datetime.utcnow().isoformat(), user_id))
+                ''', (total_minutos, total_xp, level, agora_utc, user_id))
             else:
                 cursor.execute('''
                     INSERT INTO study_data (user_id, total_minutes, xp, level, last_study)
                     VALUES (?, ?, ?, ?, ?)
-                ''', (user_id, minutos, xp_ganho, 1, datetime.utcnow().isoformat()))
+                ''', (user_id, minutos, xp_ganho, 1, agora_utc))
 
             conn.commit()
 
@@ -73,4 +73,4 @@ class StudyCog(commands.Cog):
             await ctx.send(f"🔍 {ctx.author.mention}, você ainda não registrou nenhum estudo. Use `!estudei [minutos]` para começar!")
 
 async def setup(bot: Bot):
-    await bot.add_cog(StudyCog(bot))
+    await bot.add_cog(StudyGamificationCog(bot))
