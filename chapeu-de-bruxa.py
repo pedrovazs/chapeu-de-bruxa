@@ -19,7 +19,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f"Bot {bot.user} está online!")
+    print(f"Bot {bot.user.name} está online!")
 
 # Função para carregar todas as extensões (cogs) presentes na pasta "cogs"
 async def load_extensions():
