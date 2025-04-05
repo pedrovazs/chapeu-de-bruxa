@@ -1,11 +1,13 @@
 import discord
 import asyncio
 import os
+from dotenv import load_dotenv
 from discord.ext import commands
 from duckduckgo_search import DDGS
 from const import TOKEN, GIFS
 
-TOKEN_DISCORD = TOKEN
+load_dotenv()
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
 intents.messages = True
