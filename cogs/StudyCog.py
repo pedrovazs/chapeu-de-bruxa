@@ -1,8 +1,8 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord.ext.commands import Context, Bot
 import sqlite3
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, time
 
 DB_PATH = "study_data.db"
 
@@ -36,6 +36,47 @@ class StudyGamificationCog(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         init_db()
+        self.daily_reminder.start()
+
+    def cog_unload(self):
+        self.daily_reminder.cancel()
+
+    @tasks.loop(time=time(hour=12, tzinfo=timezone.utc))  # 12:00 UTC
+    async def daily_reminder(self):
+        await self.bot.wait_until_ready()
+
+        with sqlite3.connect(DB_PATH) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT user_id, target_minutes, current_minutes FROM study_goals
+                WHERE type='diaria'
+            ''')
+            metas = cursor.fetchall()
+
+        # Agrupar lembretes por guild
+        guild_users = {guild.id: [] for guild in self.bot.guilds}
+
+        for user_id, alvo, atual in metas:
+            if atual < alvo:
+                user = self.bot.get_user(user_id)
+                if not user:
+                    continue
+                for guild in self.bot.guilds:
+                    member = guild.get_member(user_id)
+                    if member:
+                        guild_users[guild.id].append((member, alvo, atual))
+
+        # Enviar mensagem no canal 'lembrete'
+        for guild in self.bot.guilds:
+            canal = discord.utils.get(guild.text_channels, name="lembrete")
+            if canal and canal.permissions_for(guild.me).send_messages:
+                lembretes = guild_users.get(guild.id, [])
+                for membro, alvo, atual in lembretes:
+                    await canal.send(
+                        f"📣 {membro.mention}, lembrete de estudo!\n"
+                        f"Sua meta diária é de **{alvo} minutos**, e até agora você registrou **{atual} minutos**.\n"
+                        f"Vamos estudar mais um pouco hoje? 📚✨"
+                    )
 
     @commands.command(name="estudei")
     async def estudei(self, ctx: Context, minutos: int):
