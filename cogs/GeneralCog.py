@@ -13,11 +13,31 @@ class GeneralCog(commands.Cog):
     @commands.command()
     async def comandos(self, ctx):
         embed = discord.Embed(
-            title="🧙‍♀️🔮✨ Comandos disponíveis!",
-            description=f"Lista do que eu posso fazer: \n1) !oi \n2) !ping \n3) !repetir \n4) !pesquisar \n5) !zoar \n6) !piada \n7) !curiosidade \n\nE também posso lançar alguns feitiços! 🪄✨",
+            title="🧙‍♀️🔮✨ Comandos Disponíveis",
             color=discord.Color.dark_grey()
-            )
+        )
+        
+        embed.add_field(
+            name="Comandos Gerais",
+            value="`!oi` - Saudações\n`!ping` - Verifica a latência\n`!repetir` - Repete sua mensagem\n`!pesquisar` - Realiza uma busca\n`!zoar` - Uma zoeira divertida",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="Diversão",
+            value="`!piada` - Conta uma piada\n`!curiosidade` - Compartilha uma curiosidade",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="Feitiços Mágicos",
+            value="Posso lançar feitiços incríveis para surpreender você! 🪄✨",
+            inline=False
+        )
+        
+        embed.set_footer(text="Experimente os comandos e divirta-se!")
         await ctx.send(embed=embed)
+
 
     @commands.command()
     async def oi(self, ctx):
