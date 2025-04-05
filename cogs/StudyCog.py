@@ -4,7 +4,7 @@ from discord.ext.commands import Context, Bot
 import sqlite3
 from datetime import datetime, timezone, timedelta, time
 
-DB_PATH = "study_data.db"
+DB_PATH = "database/study_data.db"
 
 # Inicializa as tabelas necessárias
 def init_db():
@@ -41,7 +41,7 @@ class StudyGamificationCog(commands.Cog):
     def cog_unload(self):
         self.daily_reminder.cancel()
 
-    @tasks.loop(time=time(hour=12, tzinfo=timezone.utc))  # 12:00 UTC
+    @tasks.loop(time=time(hour=9, tzinfo=timezone.utc))  # 09:00 UTC
     async def daily_reminder(self):
         await self.bot.wait_until_ready()
 
