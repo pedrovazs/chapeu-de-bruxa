@@ -8,8 +8,11 @@ class SpellCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.confused_users = {}
+        self.silenced_users = set()
+        self.confused_users = set()
+        self.eco_users = set()
         self.spell_uses = {}
+        self.limite_diario = 3
 
         self.silence_gifs = [
             "https://media.giphy.com/media/U4DswrBJJG3aM/giphy.gif",
@@ -27,6 +30,47 @@ class SpellCog(commands.Cog):
             "https://media.giphy.com/media/xUPGcguWZHRC2HyBRS/giphy.gif",
         ]
 
+    def _pode_lancar_feitico(self, autor_id):
+        return self.spell_uses.get(autor_id, 0) <= self.limite_diario
+
+    def _registrar_uso_feitico(self, autor_id):
+        self.spell_uses[autor_id] = self.spell_uses.get(autor_id, 0) + 1
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        # Ignora mensagens de bots
+        if message.author.bot:
+            return
+
+        # Processa comandos normalmente
+        if message.content.startswith("!"):
+            await self.bot.process_commands(message)
+            return
+
+        author_id = message.author.id
+
+        # Prioridade: se o usuário estiver confuso, processa o efeito de confusão.
+        if author_id in self.confused_users:
+            try:
+                # Embaralha o conteúdo da mensagem (apenas exemplo simples: embaralhar letras)
+                scrambled = ''.join(random.sample(message.content, len(message.content)))
+                await message.delete()
+                await message.channel.send(f"😵‍💫 {message.author.mention} diz (confuso): {scrambled}")
+            except discord.Forbidden:
+                pass
+            return
+        
+        # Se o usuário estiver no efeito de eco, envia uma cópia da mensagem como eco
+        if author_id in self.eco_users:
+            try:
+                # Aqui, o bot simplesmente ecoa a mensagem com um prefixo "Eco:"
+                await message.channel.send(f"🔊 Eco de {message.author.mention}: {message.content}")
+            except discord.Forbidden:
+                pass
+            # Não deletamos a mensagem original para o efeito de eco
+            # (Caso deseje, pode optar por deletá-la)
+            return
+
     @commands.command(name="silencio")
     @commands.has_permissions(manage_roles=True)
     async def silencio(self, ctx, membro: discord.Member = None):
@@ -41,24 +85,22 @@ class SpellCog(commands.Cog):
             return await ctx.send("❌ HAHAHAHAHA! Tente de novo daqui 1000 anos!")
 
         autor_id = ctx.author.id
-        limite_diario = 3
-
-        if self.spell_uses.get(autor_id, 0) >= limite_diario:
-            return await ctx.send(f"❌ Você já usou seu limite diário de {limite_diario} feitiços!")
+        if not self._pode_lancar_feitico(autor_id):
+            return await ctx.send(f"❌ Você já usou seu limite diário de {self.limite_diario} feitiços!")
+        
+        self._registrar_uso_feitico(autor_id)
 
         # Criar ou obter o cargo 'Silenciado'
-        cargo_silenciado = discord.utils.get(ctx.guild.roles, name="Silenciado")
-        if not cargo_silenciado:
-            cargo_silenciado = await ctx.guild.create_role(name="Silenciado")
-
-            for canal in ctx.guild.channels:
-                await canal.set_permissions(cargo_silenciado, send_messages=False, speak=False)
+        cargo = discord.utils.get(ctx.guild.roles, name="Silenciado")
+        if not cargo:
+            cargo = await ctx.guild.create_role(name="Silenciado")
+            for canal in ctx.guild.text_channels:
+                await canal.set_permissions(cargo, send_messages=False)
+            for canal in ctx.guild.voice_channels:
+                await canal.set_permissions(cargo, speak=False)
 
         # Atribuir o cargo ao membro
-        await membro.add_roles(cargo_silenciado, reason="Silenciado pelo feitiço de silêncio")
-
-        self.spell_uses[autor_id] = self.spell_uses.get(autor_id, 0) + 1
-
+        await membro.add_roles(cargo, reason="Feitiço do Silêncio lançado")
         gif = random.choice(self.silence_gifs)
         embed = discord.Embed(
             title="🤫 Feitiço do Silêncio!",
@@ -71,8 +113,7 @@ class SpellCog(commands.Cog):
         await asyncio.sleep(60)
 
         # Remover o cargo após 1 minuto
-        await membro.remove_roles(cargo_silenciado, reason="Fim do feitiço de silêncio")
-
+        await membro.remove_roles(cargo, reason="Feitiço do Silêncio expirou")
         embed = discord.Embed(
             title="🔊 O feitiço foi quebrado!",
             description=f"{membro.mention} agora pode falar novamente!",
@@ -94,40 +135,28 @@ class SpellCog(commands.Cog):
             return await ctx.send("❌ Você não pode me deixar confusa, porque eu já sou!! Isso saiu errado..")
 
         autor_id = ctx.author.id
-        limite_diario = 3
+        if not self._pode_lancar_feitico(autor_id):
+            return await ctx.send(f"❌ Você já usou seu limite diário de {self.limite_diario} feitiços!")
 
-        if self.spell_uses.get(autor_id, 0) >= limite_diario:
-            return await ctx.send(f"❌ Você já usou seu limite diário de {limite_diario} feitiços!")
-
-        self.confused_users[membro.id] = True
-        self.spell_uses[autor_id] = self.spell_uses.get(autor_id, 0) + 1
-
+        self._registrar_uso_feitico(autor_id)
+        self.confused_users.add(membro.id)
         gif = random.choice(self.confusion_gifs)
         embed = discord.Embed(
             title="😵‍💫 Feitiço da Confusão!",
-            description=f"{membro.mention} está completamente confuso! Todas as suas mensagens serão embaralhadas por **1 minuto**!",
+            description=f"{membro.mention} está completamente confuso! Suas mensagens serão embaralhadas por **2 minutos**!",
             color=discord.Color.orange()
         )
         embed.set_image(url=gif)
         await ctx.send(embed=embed)
 
         await asyncio.sleep(60)
-        self.confused_users.pop(membro.id, None)
-
+        self.confused_users.discard(membro.id)
         embed = discord.Embed(
-            title="🧠 A confusão passou!",
-            description=f"{membro.mention} agora pode pensar direito novamente!",
+            title="🧠 A confusão se dissipou!",
+            description=f"{membro.mention} recuperou a clareza mental!",
             color=discord.Color.green()
         )
         await ctx.send(embed=embed)
-
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        """Intercepta as mensagens dos membros afetados pelo feitiço de confusão e embaralha o conteúdo."""
-        if message.author.id in self.confused_users and not message.author.bot:
-            embaralhado = ''.join(random.sample(message.content, len(message.content)))
-            await message.channel.send(f"{message.author.mention} disse: {embaralhado}")
-            await message.delete()
 
     @commands.command(name="eco")
     @commands.has_permissions(manage_messages=True)
