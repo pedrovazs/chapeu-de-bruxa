@@ -22,6 +22,10 @@ class SpellCog(commands.Cog):
             "https://media.giphy.com/media/5xtDarv1LJFOzL56m8c/giphy.gif",
             "https://media.giphy.com/media/l378khQxt68syiWJy/giphy.gif",
         ]
+        self.eco_gifs = [
+            "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
+            "https://media.giphy.com/media/xUPGcguWZHRC2HyBRS/giphy.gif",
+        ]
 
     @commands.command(name="silencio")
     @commands.has_permissions(manage_roles=True)
@@ -84,7 +88,7 @@ class SpellCog(commands.Cog):
             return await ctx.send("❌ Você precisa mencionar um membro para lançar o feitiço!")
 
         if membro == ctx.author:
-            return await ctx.send("❌ Você não pode lançar o feitiço em si mesmo!")
+            return await ctx.send("❌ Acho que você já está confuso por querer lançar o feitiço em si mesmo!")
 
         if membro == self.bot.user:
             return await ctx.send("❌ Você não pode me deixar confusa, porque eu já sou!! Isso saiu errado..")
@@ -101,7 +105,7 @@ class SpellCog(commands.Cog):
         gif = random.choice(self.confusion_gifs)
         embed = discord.Embed(
             title="😵‍💫 Feitiço da Confusão!",
-            description=f"{membro.mention} está completamente confuso! Todas as suas mensagens serão embaralhadas por **1 minutos**!",
+            description=f"{membro.mention} está completamente confuso! Todas as suas mensagens serão embaralhadas por **1 minuto**!",
             color=discord.Color.orange()
         )
         embed.set_image(url=gif)
@@ -124,6 +128,44 @@ class SpellCog(commands.Cog):
             embaralhado = ''.join(random.sample(message.content, len(message.content)))
             await message.channel.send(f"{message.author.mention} disse: {embaralhado}")
             await message.delete()
+
+    @commands.command(name="eco")
+    @commands.has_permissions(manage_messages=True)
+    async def eco(self, ctx, membro: discord.Member = None, duracao: int = 60):
+        """
+        Lança o feitiço de Eco: Durante o tempo especificado (em segundos), todas as mensagens enviadas pelo usuário serão ecoadas pelo bot.
+        Exemplo: !eco @usuário 90 (Eco por 90 segundos)
+        """
+        if not membro:
+            return await ctx.send("❌ Você precisa mencionar um membro para lançar o feitiço!")
+        if membro == ctx.author:
+            return await ctx.send("❌ Sua cabeça já tem eco! Hahaha")
+        if membro == self.bot.user:
+            return await ctx.send("❌ Você ainda é fraco!")
+
+        autor_id = ctx.author.id
+        if not self._pode_lancar_feitico(autor_id):
+            return await ctx.send(f"❌ Você já usou seu limite diário de {self.limite_diario} feitiços!")
+        
+        self._registrar_uso_feitico(autor_id)
+        self.eco_users.add(membro.id)
+        gif = random.choice(self.eco_gifs)
+        embed = discord.Embed(
+            title="🔊 Feitiço do Eco!",
+            description=f"{membro.mention} agora terá suas mensagens ecoadas por **{duracao} segundos**!",
+            color=discord.Color.dark_teal()
+        )
+        embed.set_image(url=gif)
+        await ctx.send(embed=embed)
+
+        await asyncio.sleep(duracao)
+        self.eco_users.discard(membro.id)
+        embed = discord.Embed(
+            title="🎤 O eco cessou!",
+            description=f"{membro.mention} agora fala normalmente.",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(SpellCog(bot))
