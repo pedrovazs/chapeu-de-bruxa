@@ -36,40 +36,40 @@ class SpellCog(commands.Cog):
     def _registrar_uso_feitico(self, autor_id):
         self.spell_uses[autor_id] = self.spell_uses.get(autor_id, 0) + 1
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        # Ignora mensagens de bots
-        if message.author.bot:
-            return
+    # @commands.Cog.listener()
+    # async def on_message(self, message: discord.Message):
+    #     # Ignora mensagens de bots
+    #     if message.author.bot:
+    #         return
 
-        # Processa comandos normalmente
-        if message.content.startswith("!"):
-            await self.bot.process_commands(message)
-            return
+    #     # Processa comandos normalmente
+    #     if message.content.startswith("!"):
+    #         await self.bot.process_commands(message)
+    #         return
 
-        author_id = message.author.id
+    #     author_id = message.author.id
 
-        # Prioridade: se o usuário estiver confuso, processa o efeito de confusão.
-        if author_id in self.confused_users:
-            try:
-                # Embaralha o conteúdo da mensagem (apenas exemplo simples: embaralhar letras)
-                scrambled = ''.join(random.sample(message.content, len(message.content)))
-                await message.delete()
-                await message.channel.send(f"😵‍💫 {message.author.mention} diz (confuso): {scrambled}")
-            except discord.Forbidden:
-                pass
-            return
+    #     # Prioridade: se o usuário estiver confuso, processa o efeito de confusão.
+    #     if author_id in self.confused_users:
+    #         try:
+    #             # Embaralha o conteúdo da mensagem (apenas exemplo simples: embaralhar letras)
+    #             scrambled = ''.join(random.sample(message.content, len(message.content)))
+    #             await message.delete()
+    #             await message.channel.send(f"😵‍💫 {message.author.mention} diz (confuso): {scrambled}")
+    #         except discord.Forbidden:
+    #             pass
+    #         return
         
-        # Se o usuário estiver no efeito de eco, envia uma cópia da mensagem como eco
-        if author_id in self.eco_users:
-            try:
-                # Aqui, o bot simplesmente ecoa a mensagem com um prefixo "Eco:"
-                await message.channel.send(f"🔊 Eco de {message.author.mention}: {message.content}")
-            except discord.Forbidden:
-                pass
-            # Não deletamos a mensagem original para o efeito de eco
-            # (Caso deseje, pode optar por deletá-la)
-            return
+    #     # Se o usuário estiver no efeito de eco, envia uma cópia da mensagem como eco
+    #     if author_id in self.eco_users:
+    #         try:
+    #             # Aqui, o bot simplesmente ecoa a mensagem com um prefixo "Eco:"
+    #             await message.channel.send(f"🔊 Eco de {message.author.mention}: {message.content}")
+    #         except discord.Forbidden:
+    #             pass
+    #         # Não deletamos a mensagem original para o efeito de eco
+    #         # (Caso deseje, pode optar por deletá-la)
+    #         return
 
     @commands.command(name="silencio")
     @commands.has_permissions(manage_roles=True)
