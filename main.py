@@ -4,6 +4,7 @@ import asyncio
 import os
 from discord.ext import commands
 from config.settings import DISCORD_TOKEN, GUILD_ID
+from database.database import init_db
 
 # Define as permissões que o bot precisa para funcionar
 intents = discord.Intents.default()
@@ -32,6 +33,7 @@ async def load_extensions():
 
 async def main():
     async with bot:
+        await init_db()
         await load_extensions()
         await bot.start(DISCORD_TOKEN)
 
