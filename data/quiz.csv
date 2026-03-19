@@ -1,0 +1,11 @@
+id,disciplina,enunciado,gabarito,comentario
+1,Direito Penal,"O crime de homicídio simples, previsto no art. 121 do CP, é punido com pena de reclusão de 6 a 20 anos.",C,"Art. 121, caput, do CP: pena de reclusão de 6 a 20 anos."
+2,Direito Constitucional,"A Constituição Federal de 1988 admite a pena de morte em caso de crimes hediondos.",E,"A CF/88 admite pena de morte apenas em caso de guerra externa declarada (art. 5º, XLVII, 'a'). Crimes hediondos não autorizam essa pena."
+3,Direito Processual Penal,"O inquérito policial é peça indispensável para o oferecimento da denúncia pelo Ministério Público.",E,"O IP é dispensável. O MP pode oferecer denúncia com base em outras peças de informação (art. 39, § 5º, CPP)."
+4,Direito Constitucional,"São direitos sociais, entre outros, a educação, a saúde, a alimentação, o trabalho e a moradia.",C,"Art. 6º da CF/88, com redação dada pela EC nº 90/2015."
+5,Direito Penal,"A legítima defesa pode ser invocada como excludente de ilicitude mesmo quando o agente usa meios desnecessários para repelir a injusta agressão.",E,"O uso de meios desnecessários caracteriza excesso, afastando a legítima defesa. Art. 25 do CP."
+6,Legislação Policial,"A Polícia Federal é um órgão permanente, organizado e mantido pela União, nos termos da CF/88.",C,"Art. 144, § 1º, da CF/88."
+7,Direito Administrativo,"O poder discricionário da Administração Pública permite que o agente público aja segundo sua vontade pessoal, sem qualquer limite legal.",E,"Discricionariedade não é arbitrariedade. O agente está sujeito aos limites da lei e aos princípios administrativos (legalidade, moralidade, etc.)."
+8,Direito Penal,"Configura crime impossível a tentativa de furtar uma carteira que, desconhecidamente pelo agente, estava vazia.",E,"Carteira vazia não torna o crime impossível, pois há objeto material. Crime impossível exige absoluta impropriedade do objeto (art. 17 do CP)."
+9,Direito Constitucional,"O mandado de segurança coletivo pode ser impetrado por partido político com representação no Congresso Nacional.",C,"Art. 5º, LXX, 'a', da CF/88."
+10,Direito Processual Penal,"A prisão em flagrante pode ser efetuada por qualquer pessoa do povo.",C,"Art. 301 do CPP: qualquer do povo poderá prender quem seja encontrado em flagrante delito."
